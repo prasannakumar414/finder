@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/alecthomas/kong"
 	"github.com/prasannakumar414/finder/cli"
@@ -14,6 +15,7 @@ import (
 )
 
 func main() {
+	start := time.Now()
 	var cmd cli.Command
 	ctx := kong.Parse(&cmd)
 	switch strings.Split(ctx.Command(), " ")[0] {
@@ -26,41 +28,38 @@ func main() {
 				log.Fatalf("Error when getting current directory: %v", err)
 			}
 		}
-		textFiles := make([]string, 0)
-		textFilesChan := make(chan []string)
 		var wg sync.WaitGroup
-		wg.Add(1)
-		go files.FileScanner(path, cmd.List.Recursive, textFilesChan, &wg)
+		lineCountChan := make(chan models.LineCount)
+		textFilesChan := make(chan []string)
+		fileCount := 0
+		files.FilesDirectoryHandler(
+			path,
+			cmd.List.Recursive,
+			lineCountChan,
+			textFilesChan,
+			&wg,
+		)
 		go func() {
 			for {
 				select {
-				case files := <-textFilesChan:
-					textFiles = append(textFiles, files...)
-				}
-			}
-		}()
-		wg.Wait()
-		if len(textFiles) == 0 {
-			fmt.Println("No text files found in directory : ", path)
-			return
-		}
-		a := make(chan models.LineCount)
-		for _, file := range textFiles {
-			wg.Add(1)
-			go files.LineCounter(file, a, &wg)
-		}
-		go func() {
-			for {
-				select {
-				case msg := <-a:
-					fmt.Println("File Path : ", msg.FilePath)
-					fmt.Println("Line Count : ", msg.LineCount)
+				case lineCountModel := <-lineCountChan:
+					pathParts := strings.Split(lineCountModel.FilePath, "/")
+					fileName := pathParts[len(pathParts)-1]
+					fmt.Println("File Path : ", lineCountModel.FilePath)
+					fmt.Println("File Name : ", fileName)
+					fmt.Println("Line Count : ", lineCountModel.LineCount)
 					fmt.Println("-----------------------------")
+					fileCount++
 				}
 			}
 		}()
 		wg.Wait()
-		close(a)
-		fmt.Printf("printed line count for %d files. \n", len(textFiles))
+		close(textFilesChan)
+		close(lineCountChan)
+		if fileCount == 0 {
+			fmt.Println("no files in the directory : ", path)
+		} else {
+			fmt.Printf("scanned %d files in %d ms. \n", fileCount, (time.Now().Sub(start)).Milliseconds())
+		}
 	}
 }
