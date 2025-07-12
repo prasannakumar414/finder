@@ -5,9 +5,13 @@ import (
 	"io"
 	"log"
 	"os"
+	"sync"
+
+	"github.com/prasannakumar414/finder/models"
 )
 
-func LineCounter(filePath string)  {
+func LineCounter(filePath string, a chan (models.LineCount), wg *sync.WaitGroup) {
+	defer wg.Done()
 	file, err := os.Open(filePath)
 	if err != nil {
 		log.Fatalf("Error when opening file: %v", err)
@@ -24,5 +28,5 @@ func LineCounter(filePath string)  {
 		}
 		lineCount++
 	}
-	
+	a <- models.LineCount{FilePath: filePath, LineCount: lineCount}
 }

@@ -4,9 +4,11 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 )
 
-func FileScanner(dirPath string, recursive bool) []string {
+func FileScanner(dirPath string, recursive bool, textFilesChan chan []string, wg *sync.WaitGroup) {
+	defer wg.Done()
 	entries, err := os.ReadDir(dirPath)
 	if err != nil {
 		log.Fatalf("Error reading directory: %v", err)
@@ -15,7 +17,8 @@ func FileScanner(dirPath string, recursive bool) []string {
 	for _, entry := range entries {
 		if entry.IsDir() && recursive {
 			directory := dirPath + "/" + entry.Name()
-			textFiles = append(textFiles, FileScanner(directory, recursive)...)
+			wg.Add(1)
+			go FileScanner(directory, recursive, textFilesChan, wg)
 		} else {
 			fileNameParts := strings.Split(entry.Name(), ".")
 			fileType := fileNameParts[len(fileNameParts)-1]
@@ -25,5 +28,5 @@ func FileScanner(dirPath string, recursive bool) []string {
 			}
 		}
 	}
-	return textFiles
+	textFilesChan <- textFiles
 }
