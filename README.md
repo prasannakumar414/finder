@@ -33,7 +33,7 @@ To understand the code structure we have 2 main packages -> cli, files.
 - To run the tool use the following command
   
   ``` bash
-  sudo finder list <path> --recursive
+  sudo finder list ~ --recursive --word-count
   ```
 
 - For help and exploring tool
