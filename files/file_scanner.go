@@ -14,11 +14,14 @@ func FileScanner(dirPath string, recursive bool, textFilesChan chan []string, wg
 		log.Fatalf("Error reading directory: %v", err)
 	}
 	textFiles := make([]string, 0)
+	var currentWaitGroup sync.WaitGroup
+	currentFilesChan := make(chan []string)
+	stopChan := make(chan bool)
 	for _, entry := range entries {
 		if entry.IsDir() && recursive {
 			directory := dirPath + "/" + entry.Name()
-			wg.Add(1)
-			go FileScanner(directory, recursive, textFilesChan, wg)
+			currentWaitGroup.Add(1)
+			go FileScanner(directory, recursive, textFilesChan, &currentWaitGroup)
 		} else {
 			fileNameParts := strings.Split(entry.Name(), ".")
 			fileType := fileNameParts[len(fileNameParts)-1]
@@ -28,5 +31,19 @@ func FileScanner(dirPath string, recursive bool, textFilesChan chan []string, wg
 			}
 		}
 	}
+	go func() {
+		for {
+			select {
+			case otherFiles := <- currentFilesChan:
+				textFiles = append(textFiles, otherFiles...)
+			case <-stopChan:
+				return
+			}
+		}
+	} ()
+	currentWaitGroup.Wait()
+	stopChan <- true
+	close(currentFilesChan)
+	close(stopChan)
 	textFilesChan <- textFiles
 }
