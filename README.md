@@ -1,6 +1,6 @@
 # finder (truecaller)
 
-a command line tool for
+a command line tool (right now in a private repository of mine) for
 
 - searching and finding text files in a linux directory.
 - get line count of files.
