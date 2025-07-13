@@ -29,13 +29,17 @@ func main() {
 			}
 		}
 		var wg sync.WaitGroup
+		stopChan := make(chan bool)
 		lineCountChan := make(chan models.LineCount)
+		wordCountMapChan := make(chan map[string]int)
 		textFilesChan := make(chan []string)
 		fileCount := 0
+		wordCountsMap := make(map[string]int)
 		files.FilesDirectoryHandler(
 			path,
 			cmd.List.Recursive,
 			lineCountChan,
+			wordCountMapChan,
 			textFilesChan,
 			&wg,
 		)
@@ -50,15 +54,32 @@ func main() {
 					fmt.Println("Line Count : ", lineCountModel.LineCount)
 					fmt.Println("-----------------------------")
 					fileCount++
+				case wordMap := <-wordCountMapChan:
+					for k, v := range wordMap {
+						wordCountsMap[k] += v
+					}
+				case <-stopChan:
+					return
 				}
 			}
 		}()
 		wg.Wait()
+		stopChan<-true
 		close(textFilesChan)
 		close(lineCountChan)
+		close(wordCountMapChan)
+		close(stopChan)
 		if fileCount == 0 {
 			fmt.Println("no files in the directory : ", path)
 		} else {
+			fmt.Println(fileCount)
+			wordCounts := files.GetMostFrequentWordsFromMap(wordCountsMap)
+			fmt.Println("Top ten most frequent words are : ")
+			for _, word := range wordCounts {
+				fmt.Println("word : ", word.Word)
+				fmt.Println("count : ", word.Count)
+				fmt.Println("--------------------------------")
+			}
 			fmt.Printf("scanned %d files in %d ms. \n", fileCount, (time.Now().Sub(start)).Milliseconds())
 		}
 	}

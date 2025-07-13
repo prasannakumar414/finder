@@ -11,6 +11,7 @@ func FilesDirectoryHandler(
 	path string,
 	recursive bool,
 	lineCountChan chan models.LineCount,
+	wordCountChan chan map[string]int,
 	textFilesChan chan []string,
 	wg *sync.WaitGroup,
 ) {
@@ -25,6 +26,8 @@ func FilesDirectoryHandler(
 				for _, filePath := range filePaths {
 					wg.Add(1)
 					go LineCounter(filePath, lineCountChan, wg)
+					wg.Add(1)
+					go WordCounter(filePath, wordCountChan, wg)
 				}
 			}
 		}
