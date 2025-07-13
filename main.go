@@ -38,6 +38,7 @@ func main() {
 		files.FilesDirectoryHandler(
 			path,
 			cmd.List.Recursive,
+			cmd.List.WordCount,
 			lineCountChan,
 			wordCountMapChan,
 			textFilesChan,
@@ -64,7 +65,7 @@ func main() {
 			}
 		}()
 		wg.Wait()
-		stopChan<-true
+		stopChan <- true
 		close(textFilesChan)
 		close(lineCountChan)
 		close(wordCountMapChan)
@@ -73,12 +74,14 @@ func main() {
 			fmt.Println("no files in the directory : ", path)
 		} else {
 			fmt.Println(fileCount)
-			wordCounts := files.GetMostFrequentWordsFromMap(wordCountsMap)
-			fmt.Println("Top ten most frequent words are : ")
-			for _, word := range wordCounts {
-				fmt.Println("word : ", word.Word)
-				fmt.Println("count : ", word.Count)
-				fmt.Println("--------------------------------")
+			if cmd.List.WordCount {
+				wordCounts := files.GetMostFrequentWordsFromMap(wordCountsMap)
+				fmt.Println("Top ten most frequent words are : ")
+				for _, word := range wordCounts {
+					fmt.Println("word : ", word.Word)
+					fmt.Println("count : ", word.Count)
+					fmt.Println("--------------------------------")
+				}
 			}
 			fmt.Printf("scanned %d files in %d ms. \n", fileCount, (time.Now().Sub(start)).Milliseconds())
 		}
