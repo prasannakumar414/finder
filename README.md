@@ -1,6 +1,7 @@
 # finder (truecaller)
 
-a command line tool for 
+a command line tool for
+
 - searching and finding text files in a linux directory.
 - get line count of files.
 - get top 10 most frequent words.
@@ -20,29 +21,29 @@ To understand the code structure we have 2 main packages -> cli, files.
 - utils package for some utility functions
 - models package for storing all the models
 
-## Execution 
+## Execution
 
 - I have written a make file to install this tool to your linux system.
 - Run make command with sudo permissions since it should install to /usr/bin/
 
-  ```
+  ``` bash
   sudo make build_and_install
   ```
 
 - To run the tool use the following command
   
-  ```
+  ``` bash
   sudo finder list <path> --recursive
   ```
 
 - For help and exploring tool
   
-  ```
+  ``` bash
   sudo finder list -h
   ```
 
 ## Testing
 
-- Unit Tests are written for each service in files package 
+- Unit Tests are written for each service in files package
 - command for testing
 - ```go test ./...```
