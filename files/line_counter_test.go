@@ -31,5 +31,5 @@ func TestLineCounter(t *testing.T) {
 	wg.Wait()
 	fmt.Println("line count model is ", lineCountModel)
 	assert.Equal(t, "test-file.txt", utils.GetFileName(lineCountModel.FilePath))
-	assert.Equal(t, 4, lineCountModel.LineCount)
+	assert.Equal(t, 5, lineCountModel.LineCount)
 }

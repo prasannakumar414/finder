@@ -12,7 +12,7 @@ func TestEnvironmentSetup() {
 	if err != nil {
 		log.Fatalf("Error when creating directory for testing : %v", err)
 	}
-	data := []byte("Hello\nNamaste\nPrasanna\nKumar")
+	data := []byte("Hello\nHello\nNamaste\nPrasanna\nKumar")
 	err = os.WriteFile("test-directory/test-file.txt", data, 0777)
 	if err != nil {
 		log.Fatalf("Error when creating file : %v", err)
