@@ -1,4 +1,4 @@
-# finder (truecaller)
+# finder
 
 a command line tool (right now in a private repository of mine) for
 
